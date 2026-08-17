@@ -27,7 +27,6 @@ export function AppShell({
     : attendance
       ? [
           ["Pasar lista", "/attendance"],
-          ["Perfil", "/profile"],
         ]
     : [
         ["Panel", "/dashboard"],
