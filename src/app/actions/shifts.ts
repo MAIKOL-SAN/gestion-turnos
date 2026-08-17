@@ -186,18 +186,11 @@ export async function registerForShiftAction(formData: FormData) {
         id: string;
         max_capacity: number;
         status: string;
-        registered_count: number;
       }>(
-        `select
-           s.id,
-           s.max_capacity,
-           s.status,
-           count(sr.id) filter (where sr.status = 'CONFIRMED')::int as registered_count
-         from shifts s
-         left join shift_registrations sr on sr.shift_id = s.id
-         where s.id = $1
-         group by s.id
-         for update of s`,
+        `select id, max_capacity, status
+         from shifts
+         where id = $1
+         for update`,
         [shiftId],
       );
 
@@ -207,7 +200,15 @@ export async function registerForShiftAction(formData: FormData) {
         throw new Error("SHIFT_NOT_OPEN");
       }
 
-      if (shift.registered_count >= shift.max_capacity) {
+      const registrationCountResult = await client.query<{ registered_count: number }>(
+        `select count(*)::int as registered_count
+         from shift_registrations
+         where shift_id = $1 and status = 'CONFIRMED'`,
+        [shiftId],
+      );
+      const registeredCount = registrationCountResult.rows[0]?.registered_count ?? 0;
+
+      if (registeredCount >= shift.max_capacity) {
         throw new Error("SHIFT_FULL");
       }
 
