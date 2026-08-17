@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { unlockPersonAttendanceAction } from "@/app/actions/attendance";
 import { setPersonStatusAction } from "@/app/actions/profile";
 import { AppShell } from "@/components/AppShell";
 import { ProfileForm } from "@/components/forms/ProfileForm";
@@ -45,6 +46,29 @@ export default async function AdminPersonDetailPage({
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-950">Estado</h2>
           <p className="mt-2 text-sm text-slate-600">{person.status}</p>
+          <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-medium text-slate-800">
+              Faltas: {person.absence_count} / {person.absence_limit}
+            </p>
+            <p
+              className={
+                person.registration_blocked
+                  ? "mt-1 text-sm font-medium text-rose-700"
+                  : "mt-1 text-sm text-slate-600"
+              }
+            >
+              {person.registration_blocked
+                ? "Inscripciones bloqueadas por faltas."
+                : "Sin bloqueo por faltas."}
+            </p>
+            {person.registration_blocked ? (
+              <form action={unlockPersonAttendanceAction} className="mt-3">
+                <input type="hidden" name="personId" value={person.id} />
+                <input type="hidden" name="returnTo" value={`/admin/people/${person.id}`} />
+                <SubmitButton variant="secondary">Reactivar inscripciones</SubmitButton>
+              </form>
+            ) : null}
+          </div>
           <form action={setPersonStatusAction} className="mt-4 flex flex-col gap-3">
             <input type="hidden" name="personId" value={person.id} />
             <select

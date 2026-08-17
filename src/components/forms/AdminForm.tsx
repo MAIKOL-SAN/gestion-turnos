@@ -33,15 +33,19 @@ export function AdminForm({ role }: { role: Role }) {
           className={inputClass}
           name="role"
           defaultValue="ADMIN"
-          disabled={!canCreateSuperAdmin}
         >
           <option value="ADMIN">ADMIN</option>
-          <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+          <option value="ATTENDANCE_MANAGER">Pasa lista</option>
+          {canCreateSuperAdmin ? <option value="SUPER_ADMIN">SUPER_ADMIN</option> : null}
         </select>
       </label>
-      {!canCreateSuperAdmin ? <input type="hidden" name="role" value="ADMIN" /> : null}
+      {!canCreateSuperAdmin ? (
+        <p className="text-sm text-slate-500 sm:col-span-2">
+          Solo un SUPER_ADMIN puede crear o asignar SUPER_ADMIN.
+        </p>
+      ) : null}
       <div className="sm:col-span-2">
-        <SubmitButton>Crear administrador</SubmitButton>
+        <SubmitButton>Crear usuario</SubmitButton>
       </div>
     </form>
   );

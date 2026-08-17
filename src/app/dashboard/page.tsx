@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { ButtonLink, EmptyState, PageHeader, StatusBadge } from "@/components/ui";
-import { requireUser } from "@/lib/auth";
+import { canTakeAttendance, requireUser } from "@/lib/auth";
 import { getShiftSummaries, getUserRegistrations } from "@/lib/data";
 import { formatDate, formatTime } from "@/lib/format";
 
@@ -11,6 +11,10 @@ export default async function DashboardPage() {
 
   if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
     redirect("/admin");
+  }
+
+  if (canTakeAttendance(user.role)) {
+    redirect("/attendance");
   }
 
   const [registrations, availableShifts] = await Promise.all([

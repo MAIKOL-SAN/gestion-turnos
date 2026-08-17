@@ -23,6 +23,7 @@ export default async function AdminPeoplePage() {
                   <th className="px-4 py-3">Nombre</th>
                   <th className="px-4 py-3">Correo</th>
                   <th className="px-4 py-3">Telefono</th>
+                  <th className="px-4 py-3">Faltas</th>
                   <th className="px-4 py-3">Estado</th>
                   <th className="px-4 py-3">Registro</th>
                 </tr>
@@ -37,6 +38,17 @@ export default async function AdminPeoplePage() {
                     </td>
                     <td className="px-4 py-3 text-slate-700">{person.email}</td>
                     <td className="px-4 py-3 text-slate-700">{person.phone ?? "-"}</td>
+                    <td className="px-4 py-3 text-slate-700">
+                      <span
+                        className={
+                          person.registration_blocked
+                            ? "font-semibold text-rose-700"
+                            : undefined
+                        }
+                      >
+                        {person.absence_count} / {person.absence_limit}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-slate-700">{person.status}</td>
                     <td className="px-4 py-3 text-slate-700">{formatDateTime(person.created_at)}</td>
                   </tr>

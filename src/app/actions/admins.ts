@@ -15,14 +15,17 @@ export async function createAdministratorAction(
   formData: FormData,
 ): Promise<FormState> {
   const creator = await requireRole(["ADMIN", "SUPER_ADMIN"]);
+  const requestedRole = formString(formData, "role") || "ADMIN";
   const parsed = adminSchema.safeParse({
     name: formString(formData, "name"),
     email: formString(formData, "email"),
     password: formString(formData, "password"),
     role:
       creator.role === "SUPER_ADMIN"
-        ? formString(formData, "role") || "ADMIN"
-        : "ADMIN",
+        ? requestedRole
+        : requestedRole === "ATTENDANCE_MANAGER"
+          ? "ATTENDANCE_MANAGER"
+          : "ADMIN",
   });
 
   if (!parsed.success) {
@@ -30,7 +33,9 @@ export async function createAdministratorAction(
   }
 
   if (creator.role !== "SUPER_ADMIN" && parsed.data.role !== "ADMIN") {
-    return { error: "Solo un SUPER_ADMIN puede crear SUPER_ADMIN." };
+    if (parsed.data.role !== "ATTENDANCE_MANAGER") {
+      return { error: "Solo un SUPER_ADMIN puede crear SUPER_ADMIN." };
+    }
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
@@ -59,14 +64,20 @@ export async function createAdministratorAction(
   }
 
   revalidatePath("/admin/administrators");
-  return { success: "Administrador creado." };
+  return { success: "Usuario administrativo creado." };
 }
 
 export async function updateAdministratorAction(formData: FormData) {
   const actor = await requireRole(["SUPER_ADMIN"]);
   const adminId = formString(formData, "adminId");
   const status = formString(formData, "status") === "INACTIVE" ? "INACTIVE" : "ACTIVE";
-  const role = formString(formData, "role") === "SUPER_ADMIN" ? "SUPER_ADMIN" : "ADMIN";
+  const requestedRole = formString(formData, "role");
+  const role =
+    requestedRole === "SUPER_ADMIN"
+      ? "SUPER_ADMIN"
+      : requestedRole === "ATTENDANCE_MANAGER"
+        ? "ATTENDANCE_MANAGER"
+        : "ADMIN";
 
   if (actor.id === adminId && status === "INACTIVE") {
     redirect("/admin/administrators?error=self");
@@ -76,7 +87,7 @@ export async function updateAdministratorAction(formData: FormData) {
     `update users
      set status = $1,
          role = $2
-     where id = $3 and role in ('ADMIN', 'SUPER_ADMIN')`,
+     where id = $3 and role in ('ADMIN', 'SUPER_ADMIN', 'ATTENDANCE_MANAGER')`,
     [status, role, adminId],
   );
 

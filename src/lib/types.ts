@@ -1,4 +1,4 @@
-export const ROLES = ["PERSON", "ADMIN", "SUPER_ADMIN"] as const;
+export const ROLES = ["PERSON", "ADMIN", "SUPER_ADMIN", "ATTENDANCE_MANAGER"] as const;
 export type Role = (typeof ROLES)[number];
 
 export type UserStatus = "ACTIVE" | "INACTIVE";
@@ -65,6 +65,10 @@ export type RegistrationRow = {
   email: string;
   cedula: string | null;
   phone: string | null;
+  absence_count: number;
+  absence_limit: number;
+  absence_unlocked_at: string | null;
+  registration_blocked: boolean;
 };
 
 export type FormState = {

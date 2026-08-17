@@ -20,6 +20,10 @@ async function confirmedCount(shiftId: string) {
   return result.rows[0]?.count ?? 0;
 }
 
+function safeReturnTo(value: string, fallback: string) {
+  return value.startsWith("/") && !value.startsWith("//") ? value : fallback;
+}
+
 export async function createShiftAction(
   _previousState: FormState,
   formData: FormData,
@@ -200,6 +204,44 @@ export async function registerForShiftAction(formData: FormData) {
         throw new Error("SHIFT_NOT_OPEN");
       }
 
+      const absenceResult = await client.query<{
+        absence_count: number;
+        absence_limit: number;
+      }>(
+        `with settings as (
+           select coalesce((
+             select value::int
+             from app_settings
+             where key = 'max_absences_before_block'
+           ), 4) as absence_limit
+         )
+         select
+           absences.absence_count,
+           settings.absence_limit
+         from users u
+         left join person_profiles pp on pp.user_id = u.id
+         cross join settings
+         left join lateral (
+           select count(*)::int as absence_count
+           from shift_registrations sr
+           where sr.person_id = u.id
+             and sr.status = 'CONFIRMED'
+             and sr.attendance_status = 'ABSENT'
+             and sr.updated_at > coalesce(pp.absence_unlocked_at, '-infinity'::timestamptz)
+         ) absences on true
+         where u.id = $1 and u.role = 'PERSON'
+         limit 1`,
+        [user.id],
+      );
+      const absenceRule = absenceResult.rows[0];
+
+      if (
+        absenceRule &&
+        absenceRule.absence_count > absenceRule.absence_limit
+      ) {
+        throw new Error("ABSENCE_BLOCKED");
+      }
+
       const registrationCountResult = await client.query<{ registered_count: number }>(
         `select count(*)::int as registered_count
          from shift_registrations
@@ -297,14 +339,18 @@ export async function cancelRegistrationAction(formData: FormData) {
 }
 
 export async function updateAttendanceAction(formData: FormData) {
-  const admin = await requireRole(["ADMIN", "SUPER_ADMIN"]);
+  const admin = await requireRole(["ADMIN", "SUPER_ADMIN", "ATTENDANCE_MANAGER"]);
   const registrationId = formString(formData, "registrationId");
   const shiftId = formString(formData, "shiftId");
   const attendance = formString(formData, "attendance");
+  const returnTo = safeReturnTo(
+    formString(formData, "returnTo"),
+    `/admin/shifts/${shiftId}`,
+  );
   const allowed = ["PENDING", "PRESENT", "ABSENT", "LATE"];
 
   if (!allowed.includes(attendance)) {
-    redirect(`/admin/shifts/${shiftId}`);
+    redirect(returnTo);
   }
 
   await query(
@@ -319,5 +365,8 @@ export async function updateAttendanceAction(formData: FormData) {
     attendance,
   });
   revalidatePath(`/admin/shifts/${shiftId}`);
-  redirect(`/admin/shifts/${shiftId}`);
+  revalidatePath(`/attendance/shifts/${shiftId}`);
+  revalidatePath("/attendance");
+  revalidatePath("/admin/people");
+  redirect(returnTo);
 }

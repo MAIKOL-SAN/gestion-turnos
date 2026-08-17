@@ -97,3 +97,7 @@ export async function requireRole(roles: Role[]) {
 export function isAdminRole(role: Role) {
   return role === "ADMIN" || role === "SUPER_ADMIN";
 }
+
+export function canTakeAttendance(role: Role) {
+  return isAdminRole(role) || role === "ATTENDANCE_MANAGER";
+}

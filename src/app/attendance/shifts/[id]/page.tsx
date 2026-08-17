@@ -1,12 +1,7 @@
 import { notFound } from "next/navigation";
 import { unlockPersonAttendanceAction } from "@/app/actions/attendance";
-import {
-  cancelRegistrationAction,
-  changeShiftStatusAction,
-  updateAttendanceAction,
-} from "@/app/actions/shifts";
+import { updateAttendanceAction } from "@/app/actions/shifts";
 import { AppShell } from "@/components/AppShell";
-import { ShiftForm } from "@/components/forms/ShiftForm";
 import {
   AttendanceBadge,
   EmptyState,
@@ -20,12 +15,12 @@ import { requireRole } from "@/lib/auth";
 import { getShiftByIdDirect, getShiftRegistrations } from "@/lib/data";
 import { formatDate, formatTime } from "@/lib/format";
 
-export default async function AdminShiftDetailPage({
+export default async function AttendanceShiftPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requireRole(["ADMIN", "SUPER_ADMIN"]);
+  const user = await requireRole(["ADMIN", "SUPER_ADMIN", "ATTENDANCE_MANAGER"]);
   const { id } = await params;
   const [shift, registrations] = await Promise.all([
     getShiftByIdDirect(id),
@@ -39,51 +34,30 @@ export default async function AdminShiftDetailPage({
   return (
     <AppShell user={user}>
       <PageHeader title={shift.name} action={<StatusBadge status={shift.status} />} />
-      <section className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <dl className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <dt className="text-sm font-medium text-slate-500">Fecha</dt>
-              <dd className="mt-1 text-slate-950">{formatDate(shift.shift_date)}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-slate-500">Horario</dt>
-              <dd className="mt-1 text-slate-950">
-                {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-slate-500">Cupo</dt>
-              <dd className="mt-1 text-slate-950">
-                {shift.registered_count} / {shift.max_capacity}
-              </dd>
-            </div>
-          </dl>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <form action={changeShiftStatusAction} className="flex flex-col gap-3">
-            <input type="hidden" name="shiftId" value={shift.id} />
-            <select className={inputClass} name="status" defaultValue={shift.status}>
-              <option value="DRAFT">Borrador</option>
-              <option value="OPEN">Abrir inscripciones</option>
-              <option value="CLOSED">Cerrar inscripciones</option>
-              <option value="CANCELLED">Cancelar turno</option>
-              <option value="COMPLETED">Completar turno</option>
-            </select>
-            <SubmitButton>Actualizar estado</SubmitButton>
-          </form>
-        </div>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <dl className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <dt className="text-sm font-medium text-slate-500">Fecha</dt>
+            <dd className="mt-1 text-slate-950">{formatDate(shift.shift_date)}</dd>
+          </div>
+          <div>
+            <dt className="text-sm font-medium text-slate-500">Horario</dt>
+            <dd className="mt-1 text-slate-950">
+              {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm font-medium text-slate-500">Inscritos</dt>
+            <dd className="mt-1 text-slate-950">
+              {shift.registered_count} / {shift.max_capacity}
+            </dd>
+          </div>
+        </dl>
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Editar turno</h2>
-        <div className="mt-4">
-          <ShiftForm shift={shift} />
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Inscritos</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Lista de asistencia</h2>
         {registrations.length === 0 ? (
           <div className="mt-4">
             <EmptyState>No hay personas inscritas.</EmptyState>
@@ -118,7 +92,11 @@ export default async function AdminShiftDetailPage({
                         <form action={updateAttendanceAction} className="flex gap-2">
                           <input type="hidden" name="registrationId" value={registration.id} />
                           <input type="hidden" name="shiftId" value={shift.id} />
-                          <input type="hidden" name="returnTo" value={`/admin/shifts/${shift.id}`} />
+                          <input
+                            type="hidden"
+                            name="returnTo"
+                            value={`/attendance/shifts/${shift.id}`}
+                          />
                           <select
                             className={inputClass}
                             name="attendance"
@@ -145,28 +123,19 @@ export default async function AdminShiftDetailPage({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
-                        {registration.registration_blocked ? (
-                          <form action={unlockPersonAttendanceAction}>
-                            <input type="hidden" name="personId" value={registration.person_id} />
-                            <input
-                              type="hidden"
-                              name="returnTo"
-                              value={`/admin/shifts/${shift.id}`}
-                            />
-                            <SubmitButton variant="secondary">Reactivar</SubmitButton>
-                          </form>
-                        ) : null}
-                        {registration.status === "CONFIRMED" ? (
-                          <form action={cancelRegistrationAction}>
-                            <input type="hidden" name="registrationId" value={registration.id} />
-                            <input type="hidden" name="shiftId" value={shift.id} />
-                            <SubmitButton variant="danger">Cancelar</SubmitButton>
-                          </form>
-                        ) : (
-                          <span className="text-sm text-slate-500">Sin accion</span>
-                        )}
-                      </div>
+                      {registration.registration_blocked ? (
+                        <form action={unlockPersonAttendanceAction}>
+                          <input type="hidden" name="personId" value={registration.person_id} />
+                          <input
+                            type="hidden"
+                            name="returnTo"
+                            value={`/attendance/shifts/${shift.id}`}
+                          />
+                          <SubmitButton variant="secondary">Reactivar</SubmitButton>
+                        </form>
+                      ) : (
+                        <span className="text-sm text-slate-500">Sin bloqueo</span>
+                      )}
                     </td>
                   </tr>
                 ))}

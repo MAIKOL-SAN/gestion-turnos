@@ -4,7 +4,7 @@ import { AdminForm } from "@/components/forms/AdminForm";
 import { PageHeader, SubmitButton } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { getAdministrators } from "@/lib/data";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, roleLabel } from "@/lib/format";
 
 export default async function AdministratorsPage({
   searchParams,
@@ -18,7 +18,7 @@ export default async function AdministratorsPage({
   return (
     <AppShell user={user}>
       <PageHeader
-        title="Administradores"
+        title="Usuarios administrativos"
         description={
           params.error === "self"
             ? "No puedes desactivar tu propio usuario."
@@ -26,7 +26,7 @@ export default async function AdministratorsPage({
         }
       />
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Crear administrador</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Crear usuario administrativo</h2>
         <div className="mt-4">
           <AdminForm role={user.role} />
         </div>
@@ -49,7 +49,7 @@ export default async function AdministratorsPage({
                 <tr key={admin.id}>
                   <td className="px-4 py-3 font-medium text-slate-950">{admin.name}</td>
                   <td className="px-4 py-3 text-slate-700">{admin.email}</td>
-                  <td className="px-4 py-3 text-slate-700">{admin.role}</td>
+                  <td className="px-4 py-3 text-slate-700">{roleLabel(admin.role)}</td>
                   <td className="px-4 py-3 text-slate-700">{admin.status}</td>
                   <td className="px-4 py-3 text-slate-700">{formatDateTime(admin.created_at)}</td>
                   <td className="px-4 py-3">
@@ -62,6 +62,7 @@ export default async function AdministratorsPage({
                           className="min-h-10 rounded-md border border-slate-300 bg-white px-2 text-sm"
                         >
                           <option value="ADMIN">ADMIN</option>
+                          <option value="ATTENDANCE_MANAGER">Pasa lista</option>
                           <option value="SUPER_ADMIN">SUPER_ADMIN</option>
                         </select>
                         <select
@@ -75,7 +76,7 @@ export default async function AdministratorsPage({
                         <SubmitButton variant="secondary">Guardar</SubmitButton>
                       </form>
                     ) : (
-                      <span className="text-sm text-slate-500">SUPER_ADMIN</span>
+                      <span className="text-sm text-slate-500">Solo SUPER_ADMIN</span>
                     )}
                   </td>
                 </tr>

@@ -60,7 +60,7 @@ export const adminSchema = z.object({
   name: requiredText("Nombre"),
   email: z.string().trim().toLowerCase().email("Correo invalido."),
   password: z.string().min(8, "La contrasena debe tener minimo 8 caracteres."),
-  role: z.enum(["ADMIN", "SUPER_ADMIN"]).default("ADMIN"),
+  role: z.enum(["ADMIN", "SUPER_ADMIN", "ATTENDANCE_MANAGER"]).default("ADMIN"),
 });
 
 export function optionalString(value: string | undefined) {

@@ -4,6 +4,7 @@ import type {
   AttendanceStatus,
   PersonProfile,
   RegistrationRow,
+  Role,
   ShiftSummary,
 } from "@/lib/types";
 
@@ -130,7 +131,14 @@ export async function getShiftByIdDirect(id: string, personId?: string) {
 
 export async function getShiftRegistrations(shiftId: string) {
   const result = await query<RegistrationRow>(
-    `select
+    `with settings as (
+       select coalesce((
+         select value::int
+         from app_settings
+         where key = 'max_absences_before_block'
+       ), 4) as absence_limit
+     )
+     select
        sr.id,
        sr.person_id,
        sr.shift_id,
@@ -141,10 +149,23 @@ export async function getShiftRegistrations(shiftId: string) {
        u.name as person_name,
        u.email,
        pp.cedula,
-       pp.phone
+       pp.phone,
+       pp.absence_unlocked_at::text,
+       absences.absence_count,
+       settings.absence_limit,
+       (absences.absence_count > settings.absence_limit) as registration_blocked
      from shift_registrations sr
      join users u on u.id = sr.person_id
      left join person_profiles pp on pp.user_id = u.id
+     cross join settings
+     left join lateral (
+       select count(*)::int as absence_count
+       from shift_registrations absent
+       where absent.person_id = sr.person_id
+         and absent.status = 'CONFIRMED'
+         and absent.attendance_status = 'ABSENT'
+         and absent.updated_at > coalesce(pp.absence_unlocked_at, '-infinity'::timestamptz)
+     ) absences on true
      where sr.shift_id = $1
      order by sr.registered_at asc`,
     [shiftId],
@@ -196,6 +217,51 @@ export async function getUserRegistrations(userId: string) {
   return result.rows;
 }
 
+export async function getRegistrationBlock(userId: string) {
+  const result = await query<{
+    absence_count: number;
+    absence_limit: number;
+    absence_unlocked_at: string | null;
+    registration_blocked: boolean;
+  }>(
+    `with settings as (
+       select coalesce((
+         select value::int
+         from app_settings
+         where key = 'max_absences_before_block'
+       ), 4) as absence_limit
+     )
+     select
+       pp.absence_unlocked_at::text,
+       absences.absence_count,
+       settings.absence_limit,
+       (absences.absence_count > settings.absence_limit) as registration_blocked
+     from users u
+     left join person_profiles pp on pp.user_id = u.id
+     cross join settings
+     left join lateral (
+       select count(*)::int as absence_count
+       from shift_registrations sr
+       where sr.person_id = u.id
+         and sr.status = 'CONFIRMED'
+         and sr.attendance_status = 'ABSENT'
+         and sr.updated_at > coalesce(pp.absence_unlocked_at, '-infinity'::timestamptz)
+     ) absences on true
+     where u.id = $1 and u.role = 'PERSON'
+     limit 1`,
+    [userId],
+  );
+
+  return (
+    result.rows[0] ?? {
+      absence_count: 0,
+      absence_limit: 4,
+      absence_unlocked_at: null,
+      registration_blocked: false,
+    }
+  );
+}
+
 export async function getAdminMetrics() {
   const result = await query<{
     people_count: number;
@@ -224,10 +290,41 @@ export async function getPeople() {
     cedula: string | null;
     phone: string | null;
     created_at: string;
+    absence_count: number;
+    absence_limit: number;
+    absence_unlocked_at: string | null;
+    registration_blocked: boolean;
   }>(
-    `select u.id, u.name, u.email, u.status, pp.cedula, pp.phone, u.created_at::text
+    `with settings as (
+       select coalesce((
+         select value::int
+         from app_settings
+         where key = 'max_absences_before_block'
+       ), 4) as absence_limit
+     )
+     select
+       u.id,
+       u.name,
+       u.email,
+       u.status,
+       pp.cedula,
+       pp.phone,
+       u.created_at::text,
+       pp.absence_unlocked_at::text,
+       absences.absence_count,
+       settings.absence_limit,
+       (absences.absence_count > settings.absence_limit) as registration_blocked
      from users u
      left join person_profiles pp on pp.user_id = u.id
+     cross join settings
+     left join lateral (
+       select count(*)::int as absence_count
+       from shift_registrations sr
+       where sr.person_id = u.id
+         and sr.status = 'CONFIRMED'
+         and sr.attendance_status = 'ABSENT'
+         and sr.updated_at > coalesce(pp.absence_unlocked_at, '-infinity'::timestamptz)
+     ) absences on true
      where u.role = 'PERSON'
      order by u.created_at desc`,
   );
@@ -249,8 +346,19 @@ export async function getPersonForAdmin(id: string) {
     address: string | null;
     blood_type: string | null;
     eps: string | null;
+    absence_count: number;
+    absence_limit: number;
+    absence_unlocked_at: string | null;
+    registration_blocked: boolean;
   }>(
-    `select
+    `with settings as (
+       select coalesce((
+         select value::int
+         from app_settings
+         where key = 'max_absences_before_block'
+       ), 4) as absence_limit
+     )
+     select
        u.id,
        u.name,
        u.email,
@@ -262,9 +370,22 @@ export async function getPersonForAdmin(id: string) {
        pp.birth_date::text,
        pp.address,
        pp.blood_type,
-       pp.eps
+       pp.eps,
+       pp.absence_unlocked_at::text,
+       absences.absence_count,
+       settings.absence_limit,
+       (absences.absence_count > settings.absence_limit) as registration_blocked
      from users u
      left join person_profiles pp on pp.user_id = u.id
+     cross join settings
+     left join lateral (
+       select count(*)::int as absence_count
+       from shift_registrations sr
+       where sr.person_id = u.id
+         and sr.status = 'CONFIRMED'
+         and sr.attendance_status = 'ABSENT'
+         and sr.updated_at > coalesce(pp.absence_unlocked_at, '-infinity'::timestamptz)
+     ) absences on true
      where u.id = $1 and u.role = 'PERSON'
      limit 1`,
     [id],
@@ -278,14 +399,105 @@ export async function getAdministrators() {
     id: string;
     name: string;
     email: string;
-    role: string;
+    role: Role;
     status: string;
     created_at: string;
   }>(
     `select id, name, email, role, status, created_at::text
      from users
-     where role in ('ADMIN', 'SUPER_ADMIN')
+     where role in ('ADMIN', 'SUPER_ADMIN', 'ATTENDANCE_MANAGER')
      order by created_at desc`,
+  );
+
+  return result.rows;
+}
+
+export async function getAttendanceLimit() {
+  const result = await query<{ absence_limit: number }>(
+    `select coalesce((
+       select value::int
+       from app_settings
+       where key = 'max_absences_before_block'
+     ), 4) as absence_limit`,
+  );
+
+  return result.rows[0]?.absence_limit ?? 4;
+}
+
+export async function getAttendanceShifts() {
+  const result = await query<ShiftSummary>(
+    `select
+       s.id,
+       s.name,
+       s.description,
+       s.shift_date::text,
+       s.start_time::text,
+       s.end_time::text,
+       s.max_capacity,
+       s.status,
+       s.created_at::text,
+       s.created_by,
+       u.name as created_by_name,
+       count(sr.id) filter (where sr.status = 'CONFIRMED')::int as registered_count,
+       greatest(s.max_capacity - count(sr.id) filter (where sr.status = 'CONFIRMED'), 0)::int as available_count,
+       null::uuid as my_registration_id
+     from shifts s
+     left join users u on u.id = s.created_by
+     left join shift_registrations sr on sr.shift_id = s.id
+     where s.shift_date between current_date - interval '7 days' and current_date + interval '14 days'
+       and s.status <> 'CANCELLED'
+     group by s.id, u.name
+     order by s.shift_date asc, s.start_time asc`,
+  );
+
+  return result.rows;
+}
+
+export async function getBlockedPeople() {
+  const result = await query<{
+    id: string;
+    name: string;
+    email: string;
+    status: string;
+    cedula: string | null;
+    phone: string | null;
+    absence_count: number;
+    absence_limit: number;
+    absence_unlocked_at: string | null;
+    registration_blocked: boolean;
+  }>(
+    `with settings as (
+       select coalesce((
+         select value::int
+         from app_settings
+         where key = 'max_absences_before_block'
+       ), 4) as absence_limit
+     )
+     select
+       u.id,
+       u.name,
+       u.email,
+       u.status,
+       pp.cedula,
+       pp.phone,
+       pp.absence_unlocked_at::text,
+       absences.absence_count,
+       settings.absence_limit,
+       (absences.absence_count > settings.absence_limit) as registration_blocked
+     from users u
+     left join person_profiles pp on pp.user_id = u.id
+     cross join settings
+     left join lateral (
+       select count(*)::int as absence_count
+       from shift_registrations sr
+       where sr.person_id = u.id
+         and sr.status = 'CONFIRMED'
+         and sr.attendance_status = 'ABSENT'
+         and sr.updated_at > coalesce(pp.absence_unlocked_at, '-infinity'::timestamptz)
+     ) absences on true
+     where u.role = 'PERSON'
+       and absences.absence_count > settings.absence_limit
+     order by absences.absence_count desc, u.name asc`,
   );
 
   return result.rows;

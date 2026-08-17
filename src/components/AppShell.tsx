@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
-import { isAdminRole } from "@/lib/auth";
+import { canTakeAttendance, isAdminRole } from "@/lib/auth";
+import { roleLabel } from "@/lib/format";
 import type { CurrentUser } from "@/lib/types";
 
 export function AppShell({
@@ -11,15 +12,23 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const admin = isAdminRole(user.role);
+  const attendance = canTakeAttendance(user.role);
+  const homeHref = admin ? "/admin" : attendance ? "/attendance" : "/dashboard";
   const links = admin
     ? [
         ["Panel", "/admin"],
         ["Turnos", "/admin/shifts"],
         ["Calendario", "/admin/calendar"],
+        ["Pasar lista", "/attendance"],
         ["Personas", "/admin/people"],
         ["Administradores", "/admin/administrators"],
         ["Auditoria", "/admin/audit-log"],
       ]
+    : attendance
+      ? [
+          ["Pasar lista", "/attendance"],
+          ["Perfil", "/profile"],
+        ]
     : [
         ["Panel", "/dashboard"],
         ["Turnos", "/shifts"],
@@ -32,13 +41,13 @@ export function AppShell({
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Link href="/dashboard" className="text-lg font-semibold text-slate-950">
+            <Link href={homeHref} className="text-lg font-semibold text-slate-950">
               Gestion de turnos
             </Link>
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
               <span>{user.name}</span>
               <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700">
-                {user.role}
+                {roleLabel(user.role)}
               </span>
               <form action={logoutAction}>
                 <button className="font-semibold text-teal-700 hover:text-teal-900">

@@ -1,4 +1,4 @@
-import type { AttendanceStatus, RegistrationStatus, ShiftStatus } from "@/lib/types";
+import type { AttendanceStatus, RegistrationStatus, Role, ShiftStatus } from "@/lib/types";
 
 const dateFormatter = new Intl.DateTimeFormat("es-CO", {
   day: "2-digit",
@@ -45,4 +45,14 @@ export function attendanceStatusLabel(status: AttendanceStatus) {
     LATE: "Tarde",
   };
   return labels[status];
+}
+
+export function roleLabel(role: Role) {
+  const labels: Record<Role, string> = {
+    PERSON: "Persona",
+    ADMIN: "Admin",
+    SUPER_ADMIN: "Super admin",
+    ATTENDANCE_MANAGER: "Pasa lista",
+  };
+  return labels[role];
 }
