@@ -51,8 +51,8 @@ export const shiftSchema = z
       .enum(["DRAFT", "OPEN", "FULL", "CLOSED", "CANCELLED", "COMPLETED"])
       .default("OPEN"),
   })
-  .refine((data) => data.endTime > data.startTime, {
-    message: "La hora de finalizacion debe ser posterior al inicio.",
+  .refine((data) => data.endTime !== data.startTime, {
+    message: "La hora de finalizacion debe ser diferente al inicio.",
     path: ["endTime"],
   });
 
