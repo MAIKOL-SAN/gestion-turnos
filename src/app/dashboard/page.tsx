@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ArrowRight, CalendarDays } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { ButtonLink, EmptyState, PageHeader, StatusBadge } from "@/components/ui";
+import { ButtonLink, PageHeader, StatusBadge, sectionTitleClass } from "@/components/ui";
 import { canTakeAttendance, requireUser } from "@/lib/auth";
 import { getShiftSummaries, getUserRegistrations } from "@/lib/data";
 import { formatDate, formatTime } from "@/lib/format";
@@ -38,57 +39,66 @@ export default async function DashboardPage() {
       />
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-950">Proximos turnos</h2>
-          <div className="mt-4 flex flex-col divide-y divide-slate-100">
+        <div className="app-card">
+          <h2 className={sectionTitleClass}>Proximos turnos</h2>
+          <div className="mt-4 flex flex-col gap-2">
             {upcoming.length === 0 ? (
-              <EmptyState>No tienes turnos confirmados proximamente.</EmptyState>
+              <p className="rounded-md bg-[var(--surface-soft)] px-3 py-4 text-sm text-[var(--foreground-muted)]">
+                No tienes turnos confirmados proximamente.
+              </p>
             ) : (
               upcoming.map((shift) => (
                 <Link
                   key={shift.registration_id}
                   href={`/shifts/${shift.id}`}
-                  className="flex flex-col gap-2 py-3 hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="rounded-md border border-transparent px-3 py-3 hover:border-[color:var(--border)] hover:bg-[var(--surface-soft)] sm:flex sm:items-center sm:justify-between"
                 >
-                  <div>
-                    <p className="font-medium text-slate-950">{shift.name}</p>
-                    <p className="text-sm text-slate-600">
-                      {formatDate(shift.shift_date)} · {formatTime(shift.start_time)} -{" "}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[var(--foreground)]">{shift.name}</p>
+                    <p className="mt-1 flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
+                      <CalendarDays aria-hidden size={15} />
+                      {formatDate(shift.shift_date)} - {formatTime(shift.start_time)} a{" "}
                       {formatTime(shift.end_time)}
                     </p>
                   </div>
-                  <StatusBadge status={shift.status} />
+                  <div className="mt-3 sm:mt-0">
+                    <StatusBadge status={shift.status} />
+                  </div>
                 </Link>
               ))
             )}
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="app-card">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-slate-950">Turnos disponibles</h2>
-            <ButtonLink href="/shifts" variant="secondary">
+            <h2 className={sectionTitleClass}>Turnos disponibles</h2>
+            <ButtonLink href="/shifts" icon={<ArrowRight aria-hidden size={16} />} variant="secondary">
               Ver todos
             </ButtonLink>
           </div>
-          <div className="mt-4 flex flex-col divide-y divide-slate-100">
+          <div className="mt-4 flex flex-col gap-2">
             {availableShifts.length === 0 ? (
-              <EmptyState>No hay turnos disponibles.</EmptyState>
+              <p className="rounded-md bg-[var(--surface-soft)] px-3 py-4 text-sm text-[var(--foreground-muted)]">
+                No hay turnos disponibles.
+              </p>
             ) : (
               availableShifts.map((shift) => (
                 <Link
                   key={shift.id}
                   href={`/shifts/${shift.id}`}
-                  className="flex flex-col gap-2 py-3 hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="rounded-md border border-transparent px-3 py-3 hover:border-[color:var(--border)] hover:bg-[var(--surface-soft)] sm:flex sm:items-center sm:justify-between"
                 >
-                  <div>
-                    <p className="font-medium text-slate-950">{shift.name}</p>
-                    <p className="text-sm text-slate-600">
-                      {formatDate(shift.shift_date)} · {shift.registered_count} /{" "}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[var(--foreground)]">{shift.name}</p>
+                    <p className="mt-1 text-sm text-[var(--foreground-muted)]">
+                      {formatDate(shift.shift_date)} - {shift.registered_count} /{" "}
                       {shift.max_capacity}
                     </p>
                   </div>
-                  <StatusBadge status={shift.status} />
+                  <div className="mt-3 sm:mt-0">
+                    <StatusBadge status={shift.status} />
+                  </div>
                 </Link>
               ))
             )}

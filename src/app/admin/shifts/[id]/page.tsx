@@ -15,6 +15,10 @@ import {
   StatusBadge,
   SubmitButton,
   inputClass,
+  mutedClass,
+  sectionTitleClass,
+  tableClass,
+  tableShellClass,
 } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { getShiftByIdDirect, getShiftRegistrations } from "@/lib/data";
@@ -40,27 +44,29 @@ export default async function AdminShiftDetailPage({
     <AppShell user={user}>
       <PageHeader title={shift.name} action={<StatusBadge status={shift.status} />} />
       <section className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="app-card">
           <dl className="grid gap-4 sm:grid-cols-3">
             <div>
-              <dt className="text-sm font-medium text-slate-500">Fecha</dt>
-              <dd className="mt-1 text-slate-950">{formatDate(shift.shift_date)}</dd>
+              <dt className={mutedClass}>Fecha</dt>
+              <dd className="mt-1 font-semibold text-[var(--foreground)]">
+                {formatDate(shift.shift_date)}
+              </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-slate-500">Horario</dt>
-              <dd className="mt-1 text-slate-950">
+              <dt className={mutedClass}>Horario</dt>
+              <dd className="mt-1 font-semibold text-[var(--foreground)]">
                 {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-slate-500">Cupo</dt>
-              <dd className="mt-1 text-slate-950">
+              <dt className={mutedClass}>Cupo</dt>
+              <dd className="mt-1 font-semibold text-[var(--foreground)]">
                 {shift.registered_count} / {shift.max_capacity}
               </dd>
             </div>
           </dl>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="app-card">
           <form action={changeShiftStatusAction} className="flex flex-col gap-3">
             <input type="hidden" name="shiftId" value={shift.id} />
             <select className={inputClass} name="status" defaultValue={shift.status}>
@@ -75,45 +81,51 @@ export default async function AdminShiftDetailPage({
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Editar turno</h2>
+      <section className="app-card">
+        <h2 className={sectionTitleClass}>Editar turno</h2>
         <div className="mt-4">
           <ShiftForm shift={shift} />
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Inscritos</h2>
+      <section className={tableShellClass}>
+        <div className="border-b border-[color:var(--border)] px-4 py-3">
+          <h2 className={sectionTitleClass}>Inscritos</h2>
+        </div>
         {registrations.length === 0 ? (
-          <div className="mt-4">
+          <div className="p-4">
             <EmptyState>No hay personas inscritas.</EmptyState>
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-normal text-slate-600">
+          <div className="overflow-x-auto">
+            <table className={tableClass}>
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">Persona</th>
-                  <th className="px-4 py-3">Cedula</th>
-                  <th className="px-4 py-3">Inscripcion</th>
-                  <th className="px-4 py-3">Asistencia</th>
-                  <th className="px-4 py-3">Faltas</th>
-                  <th className="px-4 py-3">Acciones</th>
+                  <th>Persona</th>
+                  <th>Cedula</th>
+                  <th>Inscripcion</th>
+                  <th>Asistencia</th>
+                  <th>Faltas</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {registrations.map((registration) => (
                   <tr key={registration.id}>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-slate-950">{registration.person_name}</p>
-                      <p className="text-xs text-slate-500">{registration.email}</p>
+                    <td>
+                      <p className="font-semibold text-[var(--foreground)]">
+                        {registration.person_name}
+                      </p>
+                      <p className="text-xs text-[var(--foreground-muted)]">
+                        {registration.email}
+                      </p>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{registration.cedula ?? "-"}</td>
-                    <td className="px-4 py-3">
+                    <td>{registration.cedula ?? "-"}</td>
+                    <td>
                       <RegistrationBadge status={registration.status} />
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-2">
+                    <td>
+                      <div className="flex min-w-64 flex-col gap-2">
                         <AttendanceBadge status={registration.attendance_status} />
                         <form action={updateAttendanceAction} className="flex gap-2">
                           <input type="hidden" name="registrationId" value={registration.id} />
@@ -133,18 +145,18 @@ export default async function AdminShiftDetailPage({
                         </form>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">
+                    <td>
                       <span
                         className={
                           registration.registration_blocked
-                            ? "font-semibold text-rose-700"
+                            ? "font-semibold text-rose-700 dark:text-rose-300"
                             : undefined
                         }
                       >
                         {registration.absence_count} / {registration.absence_limit}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex flex-wrap gap-2">
                         {registration.registration_blocked ? (
                           <form action={unlockPersonAttendanceAction}>
@@ -164,7 +176,7 @@ export default async function AdminShiftDetailPage({
                             <SubmitButton variant="danger">Cancelar</SubmitButton>
                           </form>
                         ) : (
-                          <span className="text-sm text-slate-500">Sin accion</span>
+                          <span className={`text-sm ${mutedClass}`}>Sin accion</span>
                         )}
                       </div>
                     </td>

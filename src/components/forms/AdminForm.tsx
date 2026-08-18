@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { createAdministratorAction } from "@/app/actions/admins";
-import { Alert, inputClass, labelClass, SubmitButton } from "@/components/ui";
+import { Alert, inputClass, labelClass, mutedClass, SubmitButton } from "@/components/ui";
 import type { Role } from "@/lib/types";
 
 export function AdminForm({ role }: { role: Role }) {
@@ -40,7 +40,7 @@ export function AdminForm({ role }: { role: Role }) {
         </select>
       </label>
       {!canCreateSuperAdmin ? (
-        <p className="text-sm text-slate-500 sm:col-span-2">
+        <p className={`text-sm ${mutedClass} sm:col-span-2`}>
           Solo un SUPER_ADMIN puede crear o asignar SUPER_ADMIN.
         </p>
       ) : null}

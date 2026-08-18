@@ -24,7 +24,7 @@ export default async function ProfilePage() {
         title="Perfil"
         description="Tu informacion sensible solo es visible para ti y para administradores autorizados."
       />
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="app-card">
         <ProfileForm profile={profile} />
       </div>
     </AppShell>

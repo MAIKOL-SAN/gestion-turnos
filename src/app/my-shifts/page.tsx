@@ -6,6 +6,9 @@ import {
   PageHeader,
   RegistrationBadge,
   StatusBadge,
+  linkClass,
+  tableClass,
+  tableShellClass,
 } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getUserRegistrations } from "@/lib/data";
@@ -17,44 +20,47 @@ export default async function MyShiftsPage() {
 
   return (
     <AppShell user={user}>
-      <PageHeader title="Mis turnos" />
+      <PageHeader
+        title="Mis turnos"
+        description="Historial de inscripciones y estado de asistencia."
+      />
       {registrations.length === 0 ? (
         <EmptyState>Aun no tienes inscripciones.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className={tableShellClass}>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-normal text-slate-600">
+            <table className={tableClass}>
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">Turno</th>
-                  <th className="px-4 py-3">Fecha</th>
-                  <th className="px-4 py-3">Inscripcion</th>
-                  <th className="px-4 py-3">Asistencia</th>
-                  <th className="px-4 py-3">Estado</th>
+                  <th>Turno</th>
+                  <th>Fecha</th>
+                  <th>Inscripcion</th>
+                  <th>Asistencia</th>
+                  <th>Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {registrations.map((registration) => (
                   <tr key={registration.registration_id}>
-                    <td className="px-4 py-3">
-                      <Link className="font-medium text-teal-700" href={`/shifts/${registration.id}`}>
+                    <td>
+                      <Link className={linkClass} href={`/shifts/${registration.id}`}>
                         {registration.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">
-                      {formatDate(registration.shift_date)} ·{" "}
-                      {formatTime(registration.start_time)} -{" "}
+                    <td>
+                      {formatDate(registration.shift_date)} -{" "}
+                      {formatTime(registration.start_time)} a{" "}
                       {formatTime(registration.end_time)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <RegistrationBadge
                         status={registration.registration_status as "CONFIRMED" | "CANCELLED"}
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <AttendanceBadge status={registration.attendance_status} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <StatusBadge status={registration.status} />
                     </td>
                   </tr>

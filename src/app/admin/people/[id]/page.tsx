@@ -3,7 +3,14 @@ import { unlockPersonAttendanceAction } from "@/app/actions/attendance";
 import { setPersonStatusAction } from "@/app/actions/profile";
 import { AppShell } from "@/components/AppShell";
 import { ProfileForm } from "@/components/forms/ProfileForm";
-import { PageHeader, SubmitButton } from "@/components/ui";
+import {
+  EmptyState,
+  PageHeader,
+  SubmitButton,
+  inputClass,
+  mutedClass,
+  sectionTitleClass,
+} from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { getPersonForAdmin, getUserRegistrations } from "@/lib/data";
 import { formatDate, formatTime } from "@/lib/format";
@@ -28,7 +35,7 @@ export default async function AdminPersonDetailPage({
     <AppShell user={user}>
       <PageHeader title={person.name} description={person.email} />
       <section className="grid gap-4 lg:grid-cols-[1fr_280px]">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="app-card">
           <ProfileForm
             personId={person.id}
             profile={{
@@ -43,18 +50,18 @@ export default async function AdminPersonDetailPage({
             }}
           />
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-950">Estado</h2>
-          <p className="mt-2 text-sm text-slate-600">{person.status}</p>
-          <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
-            <p className="text-sm font-medium text-slate-800">
+        <div className="app-card">
+          <h2 className={sectionTitleClass}>Estado</h2>
+          <p className="mt-2 text-sm text-[var(--foreground-muted)]">{person.status}</p>
+          <div className="mt-4 rounded-md border border-[color:var(--border)] bg-[var(--surface-soft)] p-3">
+            <p className="text-sm font-semibold text-[var(--foreground)]">
               Faltas: {person.absence_count} / {person.absence_limit}
             </p>
             <p
               className={
                 person.registration_blocked
-                  ? "mt-1 text-sm font-medium text-rose-700"
-                  : "mt-1 text-sm text-slate-600"
+                  ? "mt-1 text-sm font-semibold text-rose-700 dark:text-rose-300"
+                  : "mt-1 text-sm text-[var(--foreground-muted)]"
               }
             >
               {person.registration_blocked
@@ -71,11 +78,7 @@ export default async function AdminPersonDetailPage({
           </div>
           <form action={setPersonStatusAction} className="mt-4 flex flex-col gap-3">
             <input type="hidden" name="personId" value={person.id} />
-            <select
-              className="min-h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-              name="status"
-              defaultValue={person.status}
-            >
+            <select className={inputClass} name="status" defaultValue={person.status}>
               <option value="ACTIVE">ACTIVE</option>
               <option value="INACTIVE">INACTIVE</option>
             </select>
@@ -83,18 +86,22 @@ export default async function AdminPersonDetailPage({
           </form>
         </div>
       </section>
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Turnos de la persona</h2>
-        <div className="mt-3 divide-y divide-slate-100">
+      <section className="app-card">
+        <h2 className={sectionTitleClass}>Turnos de la persona</h2>
+        <div className="mt-3 flex flex-col gap-2">
           {registrations.length === 0 ? (
-            <p className="py-4 text-sm text-slate-600">No hay turnos registrados.</p>
+            <EmptyState>No hay turnos registrados.</EmptyState>
           ) : (
             registrations.map((registration) => (
-              <div key={registration.registration_id} className="py-3">
-                <p className="font-medium text-slate-950">{registration.name}</p>
-                <p className="text-sm text-slate-600">
-                  {formatDate(registration.shift_date)} · {formatTime(registration.start_time)} -{" "}
-                  {formatTime(registration.end_time)} · {registration.registration_status}
+              <div
+                key={registration.registration_id}
+                className="rounded-md border border-[color:var(--border)] bg-[var(--surface-raised)] p-3"
+              >
+                <p className="font-semibold text-[var(--foreground)]">{registration.name}</p>
+                <p className={`mt-1 text-sm ${mutedClass}`}>
+                  {formatDate(registration.shift_date)} -{" "}
+                  {formatTime(registration.start_time)} a {formatTime(registration.end_time)} -{" "}
+                  {registration.registration_status}
                 </p>
               </div>
             ))

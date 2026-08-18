@@ -8,8 +8,11 @@ export default async function NewShiftPage() {
 
   return (
     <AppShell user={user}>
-      <PageHeader title="Crear turno" />
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <PageHeader
+        title="Crear turno"
+        description="Define fecha, horario, cupo y estado inicial del turno."
+      />
+      <div className="app-card">
         <ShiftForm />
       </div>
     </AppShell>

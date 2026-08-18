@@ -1,8 +1,50 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  color-scheme: light;
+  --brand-header: #622599;
+  --brand-header-strong: #4f1d7d;
+  --brand-accent: #3bc2f3;
+  --background: #f6f7fb;
+  --foreground: #111827;
+  --foreground-soft: #475569;
+  --foreground-muted: #64748b;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-soft: #f1f5f9;
+  --surface-muted: #eaf0f7;
+  --border: #dbe3ee;
+  --border-strong: #bfccd9;
+  --focus: rgb(59 194 243 / 38%);
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-md: 0 14px 32px rgb(15 23 42 / 10%);
+  --danger: #be123c;
+  --danger-strong: #9f1239;
+  --success: #047857;
+  --warning: #b45309;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0d1018;
+  --foreground: #f8fafc;
+  --foreground-soft: #cbd5e1;
+  --foreground-muted: #94a3b8;
+  --surface: #151a25;
+  --surface-raised: #1b2230;
+  --surface-soft: #202838;
+  --surface-muted: #263247;
+  --border: #2c3749;
+  --border-strong: #435166;
+  --focus: rgb(59 194 243 / 42%);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 24%);
+  --shadow-md: 0 18px 36px rgb(0 0 0 / 30%);
+  --danger: #fb7185;
+  --danger-strong: #f43f5e;
+  --success: #34d399;
+  --warning: #fbbf24;
 }
 
 @theme inline {
@@ -12,10 +54,16 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  min-height: 100%;
+  background: var(--background);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  min-height: 100%;
 }
 
 button,
@@ -27,4 +75,417 @@ textarea {
 
 a {
   text-decoration: none;
+}
+
+::selection {
+  background: rgb(59 194 243 / 28%);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.app-sidebar {
+  background: var(--brand-header);
+  color: white;
+}
+
+.app-sidebar .app-icon-button,
+.app-sidebar .theme-toggle {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 16%);
+  color: rgb(255 255 255 / 86%);
+}
+
+.app-sidebar .app-icon-button:hover,
+.app-sidebar .theme-toggle:hover {
+  background: rgb(255 255 255 / 16%);
+  border-color: rgb(59 194 243 / 80%);
+  color: white;
+}
+
+.app-main {
+  min-width: 0;
+}
+
+.app-topbar {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.app-brand-mark {
+  align-items: center;
+  background: white;
+  border-radius: 8px;
+  color: var(--brand-header);
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 800;
+  height: 2.25rem;
+  justify-content: center;
+  width: 2.25rem;
+}
+
+.app-navlink {
+  align-items: center;
+  border-radius: 8px;
+  color: rgb(255 255 255 / 82%);
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 650;
+  gap: 0.65rem;
+  min-height: 2.5rem;
+  padding: 0.625rem 0.75rem;
+  width: 100%;
+}
+
+.app-navlink svg,
+.app-button svg {
+  flex-shrink: 0;
+}
+
+.app-navlink span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-navlink:hover,
+.app-navlink[data-active="true"] {
+  background: rgb(255 255 255 / 12%);
+  color: white;
+}
+
+.app-mobile-nav .app-navlink {
+  color: var(--foreground-soft);
+  min-width: max-content;
+  width: auto;
+}
+
+.app-mobile-nav .app-navlink:hover,
+.app-mobile-nav .app-navlink[data-active="true"] {
+  background: var(--surface-soft);
+  color: var(--brand-header);
+}
+
+.dark .app-mobile-nav .app-navlink[data-active="true"] {
+  color: var(--brand-accent);
+}
+
+.app-icon-button,
+.theme-toggle {
+  align-items: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground-soft);
+  display: inline-flex;
+  height: 2.5rem;
+  justify-content: center;
+  width: 2.5rem;
+}
+
+.app-icon-button:hover,
+.theme-toggle:hover {
+  border-color: var(--brand-accent);
+  color: var(--brand-header);
+}
+
+.dark .app-icon-button:hover,
+.dark .theme-toggle:hover {
+  color: var(--brand-accent);
+}
+
+.app-card,
+.app-table-shell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-card {
+  padding: 1rem;
+}
+
+.app-card-hover {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  display: block;
+  padding: 1rem;
+}
+
+.app-card-hover:hover {
+  border-color: var(--brand-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.app-section-title {
+  color: var(--foreground);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.app-muted {
+  color: var(--foreground-muted);
+}
+
+.app-soft {
+  background: var(--surface-soft);
+}
+
+.app-button {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.625rem 1rem;
+  white-space: nowrap;
+}
+
+.app-button:focus-visible,
+.app-icon-button:focus-visible,
+.theme-toggle:focus-visible,
+.app-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus);
+}
+
+.app-button-primary {
+  background: var(--brand-header);
+  border: 1px solid var(--brand-header);
+  color: white;
+}
+
+.app-button-primary:hover {
+  background: var(--brand-header-strong);
+  border-color: var(--brand-header-strong);
+}
+
+.app-button-secondary {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  color: var(--foreground);
+}
+
+.app-button-secondary:hover {
+  background: var(--surface-soft);
+  border-color: var(--brand-accent);
+}
+
+.app-button-danger {
+  background: var(--danger);
+  border: 1px solid var(--danger);
+  color: white;
+}
+
+.app-button-danger:hover {
+  background: var(--danger-strong);
+  border-color: var(--danger-strong);
+}
+
+.app-input {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--foreground);
+  min-height: 2.5rem;
+  padding: 0.625rem 0.75rem;
+  width: 100%;
+}
+
+.app-input::placeholder {
+  color: var(--foreground-muted);
+}
+
+.app-input:focus {
+  border-color: var(--brand-accent);
+}
+
+.app-label {
+  color: var(--foreground-soft);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.app-table {
+  min-width: 100%;
+  text-align: left;
+}
+
+.app-table tbody {
+  color: var(--foreground-soft);
+}
+
+.app-table thead {
+  background: var(--surface-soft);
+  color: var(--foreground-muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.app-table th,
+.app-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+.app-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.app-table tbody tr:hover {
+  background: var(--surface-soft);
+}
+
+.app-segment {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.app-segment a {
+  border-radius: 6px;
+  color: var(--foreground-soft);
+  font-size: 0.875rem;
+  font-weight: 700;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.app-segment a[data-active="true"] {
+  background: var(--brand-header);
+  color: white;
+}
+
+.auth-shell {
+  align-items: stretch;
+  display: grid;
+  min-height: 100vh;
+}
+
+@media (min-width: 1024px) {
+  .auth-shell {
+    grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  }
+}
+
+.auth-brand {
+  background:
+    linear-gradient(135deg, rgb(98 37 153 / 95%), rgb(79 29 125)),
+    var(--brand-header);
+  color: white;
+  position: relative;
+}
+
+.auth-brand::after {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 10%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 10%) 1px, transparent 1px);
+  background-size: 38px 38px;
+  content: "";
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  position: absolute;
+}
+
+.auth-brand > * {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-panel {
+  align-items: center;
+  background: var(--background);
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.dark .bg-white {
+  background-color: var(--surface) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100 {
+  background-color: var(--surface-soft) !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: var(--border) !important;
+}
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border) !important;
+}
+
+.dark .text-slate-950 {
+  color: var(--foreground) !important;
+}
+
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: var(--foreground-soft) !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: var(--foreground-muted) !important;
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover {
+  background-color: var(--surface-soft) !important;
+}
+
+.dark .hover\:text-slate-950:hover {
+  color: var(--foreground) !important;
+}
+
+.text-teal-700 {
+  color: var(--brand-header) !important;
+}
+
+.dark .text-teal-700 {
+  color: var(--brand-accent) !important;
 }

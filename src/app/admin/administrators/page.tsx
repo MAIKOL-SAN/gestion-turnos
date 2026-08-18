@@ -1,7 +1,15 @@
 import { updateAdministratorAction } from "@/app/actions/admins";
 import { AppShell } from "@/components/AppShell";
 import { AdminForm } from "@/components/forms/AdminForm";
-import { PageHeader, SubmitButton } from "@/components/ui";
+import {
+  PageHeader,
+  SubmitButton,
+  inputClass,
+  mutedClass,
+  sectionTitleClass,
+  tableClass,
+  tableShellClass,
+} from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { getAdministrators } from "@/lib/data";
 import { formatDateTime, roleLabel } from "@/lib/format";
@@ -22,44 +30,44 @@ export default async function AdministratorsPage({
         description={
           params.error === "self"
             ? "No puedes desactivar tu propio usuario."
-            : undefined
+            : "Gestiona administradores y usuarios encargados de pasar lista."
         }
       />
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Crear usuario administrativo</h2>
+      <section className="app-card">
+        <h2 className={sectionTitleClass}>Crear usuario administrativo</h2>
         <div className="mt-4">
           <AdminForm role={user.role} />
         </div>
       </section>
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <section className={tableShellClass}>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-normal text-slate-600">
+          <table className={tableClass}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Nombre</th>
-                <th className="px-4 py-3">Correo</th>
-                <th className="px-4 py-3">Rol</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Creado</th>
-                <th className="px-4 py-3">Gestion</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Creado</th>
+                <th>Gestion</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {admins.map((admin) => (
                 <tr key={admin.id}>
-                  <td className="px-4 py-3 font-medium text-slate-950">{admin.name}</td>
-                  <td className="px-4 py-3 text-slate-700">{admin.email}</td>
-                  <td className="px-4 py-3 text-slate-700">{roleLabel(admin.role)}</td>
-                  <td className="px-4 py-3 text-slate-700">{admin.status}</td>
-                  <td className="px-4 py-3 text-slate-700">{formatDateTime(admin.created_at)}</td>
-                  <td className="px-4 py-3">
+                  <td className="font-semibold text-[var(--foreground)]">{admin.name}</td>
+                  <td>{admin.email}</td>
+                  <td>{roleLabel(admin.role)}</td>
+                  <td>{admin.status}</td>
+                  <td>{formatDateTime(admin.created_at)}</td>
+                  <td>
                     {user.role === "SUPER_ADMIN" ? (
                       <form action={updateAdministratorAction} className="flex flex-wrap gap-2">
                         <input type="hidden" name="adminId" value={admin.id} />
                         <select
                           name="role"
                           defaultValue={admin.role}
-                          className="min-h-10 rounded-md border border-slate-300 bg-white px-2 text-sm"
+                          className={`${inputClass} min-w-40 w-auto`}
                         >
                           <option value="ADMIN">ADMIN</option>
                           <option value="ATTENDANCE_MANAGER">Pasa lista</option>
@@ -68,7 +76,7 @@ export default async function AdministratorsPage({
                         <select
                           name="status"
                           defaultValue={admin.status}
-                          className="min-h-10 rounded-md border border-slate-300 bg-white px-2 text-sm"
+                          className={`${inputClass} min-w-36 w-auto`}
                         >
                           <option value="ACTIVE">ACTIVE</option>
                           <option value="INACTIVE">INACTIVE</option>
@@ -76,7 +84,7 @@ export default async function AdministratorsPage({
                         <SubmitButton variant="secondary">Guardar</SubmitButton>
                       </form>
                     ) : (
-                      <span className="text-sm text-slate-500">Solo SUPER_ADMIN</span>
+                      <span className={`text-sm ${mutedClass}`}>Solo SUPER_ADMIN</span>
                     )}
                   </td>
                 </tr>

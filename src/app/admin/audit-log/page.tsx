@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/AppShell";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, tableClass, tableShellClass } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { getAuditLogs } from "@/lib/data";
 import { formatDateTime } from "@/lib/format";
@@ -10,33 +10,42 @@ export default async function AuditLogPage() {
 
   return (
     <AppShell user={user}>
-      <PageHeader title="Auditoria" />
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <PageHeader
+        title="Auditoria"
+        description="Registro de cambios y acciones importantes del sistema."
+      />
+      <div className={tableShellClass}>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-normal text-slate-600">
+          <table className={tableClass}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3">Usuario</th>
-                <th className="px-4 py-3">Accion</th>
-                <th className="px-4 py-3">Entidad</th>
-                <th className="px-4 py-3">Detalle</th>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Accion</th>
+                <th>Entidad</th>
+                <th>Detalle</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {logs.map((log) => (
                 <tr key={log.id}>
-                  <td className="px-4 py-3 text-slate-700">{formatDateTime(log.created_at)}</td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-slate-950">{log.actor_name ?? "-"}</p>
-                    <p className="text-xs text-slate-500">{log.actor_email ?? ""}</p>
+                  <td>{formatDateTime(log.created_at)}</td>
+                  <td>
+                    <p className="font-semibold text-[var(--foreground)]">
+                      {log.actor_name ?? "-"}
+                    </p>
+                    <p className="text-xs text-[var(--foreground-muted)]">
+                      {log.actor_email ?? ""}
+                    </p>
                   </td>
-                  <td className="px-4 py-3 text-slate-700">{log.action}</td>
-                  <td className="px-4 py-3 text-slate-700">
-                    {log.entity_type} {log.entity_id ? `· ${log.entity_id.slice(0, 8)}` : ""}
+                  <td>{log.action}</td>
+                  <td>
+                    {log.entity_type} {log.entity_id ? `- ${log.entity_id.slice(0, 8)}` : ""}
                   </td>
-                  <td className="px-4 py-3 text-slate-700">
-                    <code className="text-xs">{JSON.stringify(log.metadata ?? {})}</code>
+                  <td>
+                    <code className="rounded bg-[var(--surface-soft)] px-1.5 py-1 text-xs text-[var(--foreground-soft)]">
+                      {JSON.stringify(log.metadata ?? {})}
+                    </code>
                   </td>
                 </tr>
               ))}

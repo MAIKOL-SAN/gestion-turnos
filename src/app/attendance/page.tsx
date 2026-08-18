@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
 import {
   unlockPersonAttendanceAction,
   updateAbsenceLimitAction,
@@ -11,6 +12,10 @@ import {
   StatusBadge,
   SubmitButton,
   inputClass,
+  linkClass,
+  sectionTitleClass,
+  tableClass,
+  tableShellClass,
 } from "@/components/ui";
 import { isAdminRole, requireRole } from "@/lib/auth";
 import { getAttendanceLimit, getAttendanceShifts, getBlockedPeople } from "@/lib/data";
@@ -47,18 +52,23 @@ export default async function AttendancePage({
         <Alert type="error">El limite debe ser un numero entero entre 0 y 100.</Alert>
       ) : null}
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-950">Regla de faltas</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              El bloqueo se activa cuando la persona supera {absenceLimit} faltas.
-            </p>
+      <section className="app-card">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 gap-3">
+            <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-[color:var(--brand-accent)] bg-[color:color-mix(in_srgb,var(--brand-accent)_12%,var(--surface))] text-[var(--brand-header)] dark:text-[var(--brand-accent)]">
+              <ShieldAlert aria-hidden size={20} />
+            </div>
+            <div>
+              <h2 className={sectionTitleClass}>Regla de faltas</h2>
+              <p className="mt-1 text-sm text-[var(--foreground-muted)]">
+                El bloqueo se activa cuando la persona supera {absenceLimit} faltas.
+              </p>
+            </div>
           </div>
           {canEditLimit ? (
             <form action={updateAbsenceLimitAction} className="flex w-full gap-2 sm:w-auto">
               <input
-                className={inputClass}
+                className={`${inputClass} max-w-28`}
                 defaultValue={absenceLimit}
                 min={0}
                 max={100}
@@ -71,9 +81,9 @@ export default async function AttendancePage({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-4 py-3">
-          <h2 className="text-lg font-semibold text-slate-950">Turnos para lista</h2>
+      <section className={tableShellClass}>
+        <div className="border-b border-[color:var(--border)] px-4 py-3">
+          <h2 className={sectionTitleClass}>Turnos para lista</h2>
         </div>
         {shifts.length === 0 ? (
           <div className="p-4">
@@ -81,35 +91,32 @@ export default async function AttendancePage({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-normal text-slate-600">
+            <table className={tableClass}>
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">Turno</th>
-                  <th className="px-4 py-3">Fecha</th>
-                  <th className="px-4 py-3">Horario</th>
-                  <th className="px-4 py-3">Personas</th>
-                  <th className="px-4 py-3">Estado</th>
+                  <th>Turno</th>
+                  <th>Fecha</th>
+                  <th>Horario</th>
+                  <th>Personas</th>
+                  <th>Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {shifts.map((shift) => (
                   <tr key={shift.id}>
-                    <td className="px-4 py-3">
-                      <Link
-                        className="font-medium text-teal-700"
-                        href={`/attendance/shifts/${shift.id}`}
-                      >
+                    <td>
+                      <Link className={linkClass} href={`/attendance/shifts/${shift.id}`}>
                         {shift.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{formatDate(shift.shift_date)}</td>
-                    <td className="px-4 py-3 text-slate-700">
+                    <td>{formatDate(shift.shift_date)}</td>
+                    <td>
                       {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
                     </td>
-                    <td className="px-4 py-3 text-slate-700">
+                    <td>
                       {shift.registered_count} / {shift.max_capacity}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <StatusBadge status={shift.status} />
                     </td>
                   </tr>
@@ -120,9 +127,9 @@ export default async function AttendancePage({
         )}
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-4 py-3">
-          <h2 className="text-lg font-semibold text-slate-950">Personas bloqueadas</h2>
+      <section className={tableShellClass}>
+        <div className="border-b border-[color:var(--border)] px-4 py-3">
+          <h2 className={sectionTitleClass}>Personas bloqueadas</h2>
         </div>
         {blockedPeople.length === 0 ? (
           <div className="p-4">
@@ -130,27 +137,27 @@ export default async function AttendancePage({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-normal text-slate-600">
+            <table className={tableClass}>
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">Persona</th>
-                  <th className="px-4 py-3">Cedula</th>
-                  <th className="px-4 py-3">Faltas</th>
-                  <th className="px-4 py-3">Gestion</th>
+                  <th>Persona</th>
+                  <th>Cedula</th>
+                  <th>Faltas</th>
+                  <th>Gestion</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {blockedPeople.map((person) => (
                   <tr key={person.id}>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-slate-950">{person.name}</p>
-                      <p className="text-xs text-slate-500">{person.email}</p>
+                    <td>
+                      <p className="font-semibold text-[var(--foreground)]">{person.name}</p>
+                      <p className="text-xs text-[var(--foreground-muted)]">{person.email}</p>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{person.cedula ?? "-"}</td>
-                    <td className="px-4 py-3 text-slate-700">
+                    <td>{person.cedula ?? "-"}</td>
+                    <td>
                       {person.absence_count} / {person.absence_limit}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <form action={unlockPersonAttendanceAction}>
                         <input type="hidden" name="personId" value={person.id} />
                         <input type="hidden" name="returnTo" value="/attendance" />

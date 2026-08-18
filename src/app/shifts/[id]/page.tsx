@@ -4,7 +4,7 @@ import {
   registerForShiftAction,
 } from "@/app/actions/shifts";
 import { AppShell } from "@/components/AppShell";
-import { Alert, PageHeader, StatusBadge, SubmitButton } from "@/components/ui";
+import { Alert, PageHeader, StatusBadge, SubmitButton, mutedClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getRegistrationBlock, getShiftByIdDirect } from "@/lib/data";
 import { formatDate, formatTime } from "@/lib/format";
@@ -57,44 +57,46 @@ export default async function ShiftDetailPage({
       ) : null}
       {queryParams.cancelled ? <Alert type="success">Inscripcion cancelada.</Alert> : null}
       <section className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="app-card">
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-slate-500">Fecha</dt>
-              <dd className="mt-1 text-slate-950">{formatDate(shift.shift_date)}</dd>
+              <dt className={mutedClass}>Fecha</dt>
+              <dd className="mt-1 font-semibold text-[var(--foreground)]">
+                {formatDate(shift.shift_date)}
+              </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-slate-500">Horario</dt>
-              <dd className="mt-1 text-slate-950">
+              <dt className={mutedClass}>Horario</dt>
+              <dd className="mt-1 font-semibold text-[var(--foreground)]">
                 {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-slate-500">Cupos</dt>
-              <dd className="mt-1 text-slate-950">
+              <dt className={mutedClass}>Cupos</dt>
+              <dd className="mt-1 font-semibold text-[var(--foreground)]">
                 {shift.registered_count} / {shift.max_capacity}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-slate-500">Disponibles</dt>
-              <dd className="mt-1 text-slate-950">
-                {shift.status === "FULL" ? "CUPO COMPLETO" : shift.available_count}
+              <dt className={mutedClass}>Disponibles</dt>
+              <dd className="mt-1 font-semibold text-[var(--foreground)]">
+                {shift.status === "FULL" ? "Cupo completo" : shift.available_count}
               </dd>
             </div>
           </dl>
           {shift.description ? (
-            <p className="mt-5 whitespace-pre-line text-sm leading-6 text-slate-700">
+            <p className="mt-5 whitespace-pre-line text-sm leading-6 text-[var(--foreground-soft)]">
               {shift.description}
             </p>
           ) : null}
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="app-card">
           {shift.my_registration_id ? (
             <form action={cancelRegistrationAction} className="flex flex-col gap-3">
               <input type="hidden" name="registrationId" value={shift.my_registration_id} />
               <input type="hidden" name="shiftId" value={shift.id} />
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-semibold text-[var(--foreground)]">
                 Ya estas inscrito en este turno.
               </p>
               <SubmitButton variant="danger">Cancelar inscripcion</SubmitButton>
@@ -102,25 +104,25 @@ export default async function ShiftDetailPage({
           ) : canRegister ? (
             <form action={registerForShiftAction} className="flex flex-col gap-3">
               <input type="hidden" name="shiftId" value={shift.id} />
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-[var(--foreground-muted)]">
                 {shift.available_count} cupos disponibles.
               </p>
               <SubmitButton>Inscribirme</SubmitButton>
             </form>
           ) : registrationBlock.registration_blocked ? (
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-rose-800">
+              <p className="text-sm font-semibold text-rose-700 dark:text-rose-300">
                 Inscripciones bloqueadas por faltas.
               </p>
-              <p className="text-sm text-slate-700">
+              <p className="text-sm leading-6 text-[var(--foreground-muted)]">
                 Faltas actuales: {registrationBlock.absence_count} /{" "}
                 {registrationBlock.absence_limit}. Un administrador o pasa lista debe reactivar tu
                 cuenta para nuevos turnos.
               </p>
             </div>
           ) : (
-            <p className="text-sm font-medium text-slate-700">
-              {shift.status === "FULL" ? "CUPO COMPLETO" : "Inscripciones cerradas"}
+            <p className="text-sm font-semibold text-[var(--foreground-soft)]">
+              {shift.status === "FULL" ? "Cupo completo" : "Inscripciones cerradas"}
             </p>
           )}
         </div>
