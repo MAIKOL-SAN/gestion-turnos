@@ -4,13 +4,13 @@ import { AppShell } from "@/components/AppShell";
 import { EmptyState, Metric, PageHeader, StatusBadge, sectionTitleClass } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { getAdminMetrics, getShiftSummaries } from "@/lib/data";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatDate, formatTime, getColombiaDateString } from "@/lib/format";
 
 export default async function AdminDashboardPage() {
   const user = await requireRole(["ADMIN", "SUPER_ADMIN"]);
   const [metrics, shifts] = await Promise.all([
     getAdminMetrics(),
-    getShiftSummaries({ date: new Date().toISOString().slice(0, 10) }),
+    getShiftSummaries({ date: getColombiaDateString() }),
   ]);
 
   return (

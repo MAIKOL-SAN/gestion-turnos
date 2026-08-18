@@ -189,9 +189,14 @@ export async function registerForShiftAction(formData: FormData) {
       const shiftResult = await client.query<{
         id: string;
         max_capacity: number;
+        is_upcoming: boolean;
         status: string;
       }>(
-        `select id, max_capacity, status
+        `select
+           id,
+           max_capacity,
+           status,
+           ((shift_date + start_time) > timezone('America/Bogota', now())) as is_upcoming
          from shifts
          where id = $1
          for update`,
@@ -202,6 +207,10 @@ export async function registerForShiftAction(formData: FormData) {
 
       if (!shift || shift.status !== "OPEN") {
         throw new Error("SHIFT_NOT_OPEN");
+      }
+
+      if (!shift.is_upcoming) {
+        throw new Error("SHIFT_ALREADY_STARTED");
       }
 
       const absenceResult = await client.query<{

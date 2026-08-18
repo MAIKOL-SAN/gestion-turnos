@@ -8,6 +8,10 @@ import type {
   ShiftSummary,
 } from "@/lib/types";
 
+const COLOMBIA_NOW_SQL = "timezone('America/Bogota', now())";
+const COLOMBIA_TODAY_SQL = `${COLOMBIA_NOW_SQL}::date`;
+const SHIFT_START_SQL = "(s.shift_date + s.start_time)";
+
 export async function getPersonProfile(userId: string) {
   const result = await query<PersonProfile>(
     `select *
@@ -47,7 +51,7 @@ export async function getShiftSummaries(options?: {
   }
 
   if (options?.onlyOpenFuture) {
-    conditions.push(`s.shift_date >= current_date`);
+    conditions.push(`${SHIFT_START_SQL} > ${COLOMBIA_NOW_SQL}`);
     conditions.push(`s.status in ('OPEN', 'FULL')`);
   }
 
@@ -272,7 +276,7 @@ export async function getAdminMetrics() {
   }>(
     `select
       (select count(*)::int from users where role = 'PERSON') as people_count,
-      (select count(*)::int from shifts where shift_date = current_date and status <> 'CANCELLED') as today_count,
+      (select count(*)::int from shifts where shift_date = ${COLOMBIA_TODAY_SQL} and status <> 'CANCELLED') as today_count,
       (select count(*)::int from shifts where status = 'OPEN') as open_count,
       (select count(*)::int from shifts where status = 'FULL') as full_count,
       (select count(*)::int from shifts where status = 'CANCELLED') as cancelled_count`,
@@ -444,7 +448,7 @@ export async function getAttendanceShifts() {
      from shifts s
      left join users u on u.id = s.created_by
      left join shift_registrations sr on sr.shift_id = s.id
-     where s.shift_date between current_date - interval '7 days' and current_date + interval '14 days'
+     where s.shift_date between ${COLOMBIA_TODAY_SQL} - interval '7 days' and ${COLOMBIA_TODAY_SQL} + interval '14 days'
        and s.status <> 'CANCELLED'
      group by s.id, u.name
      order by s.shift_date asc, s.start_time asc`,
@@ -533,18 +537,18 @@ export async function getAuditLogs() {
 }
 
 export async function getCalendarShifts(view: string) {
-  let condition = "s.shift_date >= current_date - interval '7 days'";
+  let condition = `s.shift_date >= ${COLOMBIA_TODAY_SQL} - interval '7 days'`;
 
   if (view === "day") {
-    condition = "s.shift_date = current_date";
+    condition = `s.shift_date = ${COLOMBIA_TODAY_SQL}`;
   }
 
   if (view === "week") {
-    condition = "s.shift_date between current_date and current_date + interval '7 days'";
+    condition = `s.shift_date between ${COLOMBIA_TODAY_SQL} and ${COLOMBIA_TODAY_SQL} + interval '7 days'`;
   }
 
   if (view === "month") {
-    condition = "date_trunc('month', s.shift_date) = date_trunc('month', current_date)";
+    condition = `date_trunc('month', s.shift_date) = date_trunc('month', ${COLOMBIA_TODAY_SQL})`;
   }
 
   const result = await query<

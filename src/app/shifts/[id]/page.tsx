@@ -7,12 +7,13 @@ import { AppShell } from "@/components/AppShell";
 import { Alert, PageHeader, StatusBadge, SubmitButton, mutedClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getRegistrationBlock, getShiftByIdDirect } from "@/lib/data";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatDate, formatTime, isShiftUpcoming } from "@/lib/format";
 
 const errorMessages: Record<string, string> = {
   role: "Los administradores no pueden inscribirse desde esta vista.",
   SHIFT_NOT_OPEN: "El turno no esta abierto.",
   SHIFT_FULL: "El turno ya no tiene cupos disponibles.",
+  SHIFT_ALREADY_STARTED: "Este turno ya inicio y no acepta nuevas inscripciones.",
   ABSENCE_BLOCKED:
     "No puedes inscribirte porque superaste el limite de faltas. Un administrador o pasa lista debe reactivar tu inscripcion.",
   FORBIDDEN: "No puedes cancelar esta inscripcion.",
@@ -37,10 +38,12 @@ export default async function ShiftDetailPage({
     notFound();
   }
 
+  const isUpcoming = isShiftUpcoming(shift.shift_date, shift.start_time);
   const canRegister =
     user.role === "PERSON" &&
     shift.status === "OPEN" &&
     shift.available_count > 0 &&
+    isUpcoming &&
     !registrationBlock.registration_blocked &&
     !shift.my_registration_id;
 
@@ -122,7 +125,11 @@ export default async function ShiftDetailPage({
             </div>
           ) : (
             <p className="text-sm font-semibold text-[var(--foreground-soft)]">
-              {shift.status === "FULL" ? "Cupo completo" : "Inscripciones cerradas"}
+              {!isUpcoming
+                ? "Este turno ya inicio"
+                : shift.status === "FULL"
+                  ? "Cupo completo"
+                  : "Inscripciones cerradas"}
             </p>
           )}
         </div>

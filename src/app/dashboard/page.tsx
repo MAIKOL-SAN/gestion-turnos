@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { ButtonLink, PageHeader, StatusBadge, sectionTitleClass } from "@/components/ui";
 import { canTakeAttendance, requireUser } from "@/lib/auth";
 import { getShiftSummaries, getUserRegistrations } from "@/lib/data";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatDate, formatTime, isShiftUpcoming } from "@/lib/format";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     .filter(
       (registration) =>
         registration.registration_status === "CONFIRMED" &&
-        registration.shift_date >= new Date().toISOString().slice(0, 10),
+        isShiftUpcoming(registration.shift_date, registration.start_time),
     )
     .slice(0, 5);
 
